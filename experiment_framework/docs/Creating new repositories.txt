@@ -1,0 +1,5 @@
+On the Projects tab, create a new project
+
+On the source control tab, enable source control, add repository, use same name as project, click option for adding initial directories
+
+Go to settings tab, click on permissions, add users as necessary

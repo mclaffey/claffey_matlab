@@ -1,0 +1,49 @@
+body
+{
+font-family: gilsans, 'sans serif'; 
+}
+
+
+table
+{
+ margin-left: 15pt;
+}
+
+th
+{
+	font-size: 14px;
+	font-weight: normal;
+	color: #039;
+	padding: 4px 8px;
+	border-bottom: 2px solid #6678b1;
+    text-align: center;
+    vertical-align: baseline;
+}
+
+td
+{
+	color: #669;
+	padding: 0px 4px 0px 0px;
+    vertical-align: middle;
+    border-width: 0px;
+    cell-spacing: 0px;
+    border-style: solid solid solid solid;
+    border-color: gray gray gray gray;
+    background-color: white;
+	border-bottom: 1px solid #ccc;
+}
+
+body
+{
+background-color: #ffffff;
+}
+
+h1,h2,h3,hr 
+{
+color:saddlebrown; 
+}
+
+a:link    {color:darkred}
+a:visited {color:darkred}
+a:active  {color:red}
+a:hover   {color:red}

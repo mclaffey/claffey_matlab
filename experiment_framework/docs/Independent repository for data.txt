@@ -1,0 +1,35 @@
+Process for creating a data directory that saves to a different repository than the experiment code
+
+Create the new svn repository online with trunk
+Example: http://svn/gum1_data/trunk
+
+Change to the local working copy
+	cd gum1
+
+move desired subject files out of the data directory to a temporary directory (e.g. create an "old_data" directory under gum1 and move files from data to old_data)
+	mkdir old_data
+	mv data/* old_data
+
+remove the data directory from the experiment repository. (i'd like the data directory to be the in experiment repository, but this seems to be necessary)
+	svn rm data
+
+commit change
+	svn ci -m 'removed data directory'
+
+create a new data directory but make it invisible to the code repository
+	mkdir data
+	svn propset svn:ignore data .
+
+move in to data directory and run:
+	cd data
+	svn co http://svn/data_rep/trunk .
+
+move all files from old_data back in to data directory
+	mv ../old_data/* .
+
+add files to repository
+	svn add *
+	svn ci -m 'initial data import'
+
+the data directory and it's contents will not show up in svn st commands run from the gum1 directory, nor with svn up commands update the data directory. you have to address the data repository separately by moving in to the data directory and running svn commands from there
+

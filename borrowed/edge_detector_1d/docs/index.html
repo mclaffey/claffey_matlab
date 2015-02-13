@@ -1,0 +1,199 @@
+<html>
+<head>
+<title>Edge Detector 1D</title>
+<link rel="StyleSheet" href="styles.css" type="text/css">
+</head>
+<body>
+
+<div id="header">
+<h1>Edge Detector 1D</h1>
+</div>
+
+<div id="container">
+
+<div id="navbar">
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#application">Application</a></li>
+<li><a href="#download">Download</a></li>
+<li><a href="#theory">Theory</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+
+<div id="content">
+<h1><a name="introduction">Introduction</a></h1>
+<p>Edge detection is an important task in many data processing procedures. Edge detection serves as an early step in many computer vision applications; the results of an edge detection algorithm may feed into higher-level processing. For example, edges in images may demarcate the boundaries of real world objects appearing in the image. In other data processing tasks, edges may indicate a transition between states or the occurence of interesting events.</p>
+
+<p>We describe an application in MATLAB that detects edges in 1D data. We begin with the application of edge detection in two scientific data sets.  We follow with a discussion of edge detection theory and provide some examples of edge detection with sythetic data.</p>
+
+<h1><a name="application">Application</a></h1>
+<p>Our MATLAB application consists of one main script, two utility scripts, and several supporting modules:</p>
+<dl>
+<dt>AnalyzeEdges</dt>
+<dd>The core of the application, performs scale space edge detection on 1D data; call this module if you already have your data loaded into a vector</dd>
+<dt>AnalyzeFretData</dt>
+<dd>A utility script, loads an itx file containing <acronym title="Fluorescence Resonance Energy Transfer">FRET</acronym> data, computes the <acronym title="Fluorescence Resonance Energy Transfer">FRET</acronym> ratio, and performs 1D data analysis</dd>
+<dt>Analyze3dfmDna</dt>
+<dd>A utility script, loads <acronym title="3-Dimensional Force Microscope">3DFM</acronym> position data from a file and performs 1D data analysis</dd>
+</dl>
+<p>We will discuss how to use these modules using several concrete examples.</p>
+
+<h2>Example Data</h2>
+<p>Edge Detector 1D comes with sample FRET data (based on real data, but with extra noise).  The following MATLAB commands load and analyze this data using the core AnayzeEdges function.</p>
+
+<div class="code">
+<pre>
+>> load sample-fret;
+>> [dFret, minmax, stats] = AnalyzeEdges(fret);
+ Time	 Mean	 Stdv
+  188	 1.67	 0.15
+  256	 1.09	 0.12
+  751	 1.87	 0.14
+  772	 1.09	 0.23
+  841	 1.76	 0.14
+  900	 1.07	 0.15
+</pre>
+</div>
+
+<p>After loading the sample data, a variabled named 'fret' will be added to the MATLAB workspace.  In this example, the only parameter provided to AnalyzeEdges is the data set; the program happens to choose reasonable default parameters for this sample data.  Type 'help AnalyzeEdges' for more information about the other optional parameters.</p>
+
+<p>Three display windows will appear showing the edges detected in the data and some intermediate analysis results.  Five edges are found, which divide the sample data into six regions; the ending index, mean, and standard deviation of each region are printed to the MATLAB console.</p>
+
+<h2><acronym title="Fluorescence Resonance Energy Transfer">FRET</acronym></h2>
+<p>Consider an experiment in Fluorescence Resonance Energy Transfer (FRET). Two fluorescing particles are bound to two regions of a molecule that undergoes shape transformations. The emission spectrum of one particle (the donor) matches the absorption spectrum of the other particle (the acceptor). When the donor is excited (e.g. with laser light), both particles emit energy at their respective emission spectra. But, the amount of light emitted by the donor particle and absorbed by the acceptor particle changes as a function of distance (with a 1/r<sup>6</sup> depencency). So, the ratio of light emitted by the two particles provides a measure of the structure of the molecule to which they are attached. When the molecule undergoes a structural change, one sees a discontinuity in the <acronym title="Fluorescence Resonance Energy Transfer">FRET</acronym> measurement.</p>
+
+<p>A scale space edge detection is required to analyze the <acronym title="Fluorescence Resonance Energy Transfer">FRET</acronym> data correctly. Edge detection at a fine scale would detect many false transition regions due to noise; coarse scale detection would be imprecise. The following code example demonstrates how one might use our MATLAB program to detect distinct regions in this data.</p>
+
+<div class="code">
+<pre>
+>> [fret, dFret, minmax, stats] = AnalyzeFretData('cascade3trace276.itx', [1:8], 0.4*ones(1,8), .01, 1.5, 10.36, 4);
+ Time    Mean    Stdv
+ 2.37    0.66    0.06
+ 3.06    0.10    0.04
+ 8.01    0.87    0.06
+ 8.21    0.07    0.03
+ 8.91    0.78    0.05
+ 9.98    0.14    0.10
+10.25    0.90    1.38
+10.36    0.40    0.62
+</pre>
+</div>
+
+<p>Briefly, the parameters provided specify:</p>
+<ul>
+<li>The name of the data file containing the <acronym title="Fluorescence Resonance Energy Transfer">FRET</acronym> data</li>
+<li>The scales (in data points) over which to perform the analysis</li>
+<li>A set of thresholds to apply at each scale; the threshold value between 0 and 1 specifies how sensitive the algorithm is to detecting edges</li>
+<li>The amount of time between data samples</li>
+<li>The time at which to start analysis</li>
+<li>The time at which to end analysis</li>
+<li>The number of data points on each side of a transition to exclude from the statistics</li>
+</ul>
+
+<p>
+<div class="figure">
+<a href="img/FRET-Result.png"><img src="img/FRET-Result.png" alt="Edges detected in FRET data"></a><br>
+<a href="img/FRET-Detect.png"><img src="img/FRET-Detect.png" alt="Coarse scale FRET derivative"></a><br>
+<a href="img/FRET-ScaleSpace.png"><img src="img/FRET-ScaleSpace.png" alt="FRET derivative scale space"></a><br>
+Figures created by the edge detection application. Top: <acronym title="Fluorescence Resonance Energy Transfer">FRET</acronym> data with edges detected in red. Middle: coarsest level derivative of Gaussian data used to seed the search for edges in the <acronym title="Fluorescence Resonance Energy Transfer">FRET</acronym> data, with final edge positions marked in red. Bottom: The derivative of Gaussian scale space used in the edge search.
+</div>
+The figure at right shows the images created when running our application with sample <acronym title="Fluorescence Resonance Energy Transfer">FRET</acronym> data. The application constructs a set of scaled derivatives of the input data. Local maxima (or minima) in the scaled derivatives indicate sharp edges (large slope) in the original data. We initially detect maximia (or minima) that persist at a coarse scale to ensure the features we detect are significant (e.g. not due to noise). We then track these features through the other scaled derivatives; at the end we have a reasonably confident measure of where significant edges occured in the data.</p>
+
+<p>The selection of scales, therefore, is crucial in this analysis. If the scales considered are too fine, false edges due to noise will be detected. If the scales considered are too coarse, significant features may be missed. Finding the right happy medium is known as <em>parameter tuning</em>.</p>
+
+<p>Paired with scale selection is the selection of appropriate thresholds, which we discuss in the next section.</p>
+
+The application calculates and prints region statistics (mean and standard deviation). The first region lies between the start time and the first detected edge; the second region lies between the first and second detected edge, etc. The application returns this data in a MATLAB matrix, along with the scaled derivatives of the data and a vector indicating where the detected edges occur.
+
+<h2><acronym title="3-Dimensional Force Microscope">3DFM</acronym></h2>
+<p>The <acronym title="3-Dimensional Force Microscope">3DFM</acronym> provides researchers the ability apply magnetic forces to small particles. In one experiment, researchers have attached a magnetic bead to one end of a coiled <acronym title="Deoxyribonucleic Acid">DNA</acronym> strand while the other end remains fixed. As the scientist pull one end of the DNA, the DNA unravels and histones (around which the DNA is coiled) pop off the DNA strand. By tracking the magnetic bead one can determine where the histones pop off by identifying jumps in the position measurement. The challenge of this analysis, however, is that the position data are very noisy; additionally, the position is sampled 10,000 times per second, generating a vast amount of data.</p>
+
+<p>The following code snipet shows one attempt at detecting the edges in the 3DFM position data. (The data are actually culled in this example to limit the amount processed.)</p>
+<div class="code">
+<pre>
+>> [dData, minmax, stats] = Analyze3dfmDna('csvData', [16, 32, 64, 128, 256, 512], [0.2, 0.2, 0.2, 0.2, 0.2, 0.17], .0001);
+ Time    Mean    Stdv
+ 1.66    0.81    0.01
+10.87    0.86    0.01
+21.57    0.89    0.02
+25.11    0.92    0.01
+32.74    0.93    0.02
+50.43    0.97    0.02
+52.54    1.01    0.01
+59.63    1.03    0.02
+64.46    1.06    0.02
+71.11    1.34    0.02
+77.06    1.36    0.02
+82.20    1.38    0.01
+87.78    1.39    0.03
+98.69    1.45    0.02
+100.81   1.59    0.04
+113.16   1.88    0.03
+116.41   1.97    0.01
+128.79   1.99    0.02
+137.53   2.09    0.02
+155.93   2.14    0.02
+173.07   2.20    0.02
+200.00   2.27    0.02
+</pre>
+</div>
+
+<p>
+<div class="figure">
+<a href="img/DNA-Result.png"><img src="img/DNA-Result.png" alt="Edges detected in 3DFM data"></a><br>
+<a href="img/DNA-ScaleSpace.png"><img src="img/DNA-ScaleSpace.png" alt="3DFM derivative of Gaussian scale space"></a><br>
+Top: The results of edge detection on 3DFM data; about 200000 sample points are represented. Bottom: The derivative of Gaussian scale space used in edge detection (scales: 16, 32, 64, 128, 256, 512).
+</div>
+The figure at right shows the results of edge detection on 3DFM data. In this example, the edges occur at a large scale compared to the sampling rate, so appropriately large scales are selected for analysis. This example also illustrates a different strategy for scale selection. There is really no need to select a continuous range of scales&mdash;as the scale doubles, the minimum size of a feature that can be represented also doubles. By searching scales that are powers of two, we consider all possible features.
+</p>
+
+<p>
+<div class="figure">
+<a href="img/DNA-Result-HighThreshold.png"><img src="img/DNA-Result-HighThreshold.png" alt="Edge detection in 3DFM data with a high threshold"></a><br>
+Edge detection with a high threshold, initially 0.7.
+</div>
+The figure at right illustrates the importance of thresholding. Here we have used a high initial threshold to only find very prominent features of the data set. Only the two strongest positive step edges are detected. For a given threshold, n, the edge detection application will comapare a local maximum, M<sub>l</sub>, in the derivative to the global maximum, M<sub>g</sub>. If M<sub>l</sub> &lt; n * M<sub>g</sub>, the local maximum is discarded. The same criteria hold for local minima. Notice, however, that if the original data is skewed&mdash;for example, there are significant positive step edges but relatively insignificant negative step edges&mdash;then the algorithm may be more sensitive to detecting one type of step edge. In the figure at right, the second and third edges the most significant negative step edges in the data, even though they are minor features compared to the two positive step edges.</p>
+
+<h1><a name="download">Download</a></h1>
+<p>You can find the latest version of Edge Detector 1D <a href="https://www.cs.unc.edu/Research/nano/cismm/download/index.html">here</a>.
+</p>
+
+<h1><a name="theory">Theory</a></h1>
+<p>In 1986, John Canny published a seminal paper on edge detection. Canny provides a mathematical argument for why a derivative of Gaussian kernel is an optimal edge detector.  Convolving an edge with a derivative of Gaussian kernel produces maxima (or minima) at step edges. The concept can be applied to 1D data as well as 2D data (e.g. images), or even data of higher dimensions.</p>
+
+<p>
+<div class="figure">
+<a href="img/IdealStepEdges.png"><img src="img/IdealStepEdges.png" alt="An ideal step edge"></p><br>
+<a href="img/Ideal-Detect.png"><img src="img/Ideal-Detect.png" alt="Detecting an ideal step edge"></a><br>
+Top: A series of ideal step edges. Bottom: The result of convolving the ideal step edge with an appropriate derivative of Gaussian kernel. Detected minima and maxima of the result are marked in red.
+</div>
+
+Consider an ideal 1D step edge&mdash;a function that makes a discontinuous jump from one value to another. In the figure at right, we see an ideal step edge and the result of convolution with a Gaussian derivative kernel. Maxima and minima in the derivative are marked in red.</p>
+
+<p>
+<div class="figure">
+<a href="img/StepEdge-Result.png"><img src="img/StepEdge-Result.png" alt="Edge detection with a noisy signal"></a><br>
+The results of edge detection on a noisy step edge signal. The added noise had a standard normal distribution scaled to 20% of the amplitude of the original signal.
+</div>
+
+The real world is noisy&mdash;an ideal step edge never occurs in real data. The derivative of Gaussian kernel handles edge detection in noisy data by smoothing. The scale parameter of the Gaussian kernel selects the degree of noise surpression. The scale term is essential and must generally be tuned to appropriate values based on the nature of the data. At right, we see the results from edge detection on the ideal step edge corrupted with normally-distributed noise.</p>
+
+<p>
+<div class="figure">
+<a href="img/StepEdge-ScaleSpace.png"><img src="img/StepEdge-ScaleSpace.png" alt="Gaussian derivative scale space of the noisy step edge."></a><br>
+The Gaussian derivative scale space of the noisy step edge function (scales: 1, 2, 4, 8). High intensities represent a larger response to the derivative kernel, indicating a positive step edge. Low intensities indicate a negative step edge.
+</div>
+
+Selection of a proper scale for edge detection is a delicate process. At a small scale, noise and signal may be indistinguishable&mdash;everything looks like an edge. At a large scale, the data also becomes smooth, and the location of detected edges becomes less precise. The desire for optimial noise surpression and detection accuracy leads to <em>scale space analysis</em>. We look for edges at <em>multiple</em> scales, starting at a coarse level to surpress noise, and ending at a fine level to improve accuracy. For edge detection over scale space, we analyze the derivative scale space of our data.  The figure at right depicts the noisy step edge data convolved with Gaussian kernels of varying scales.  At a finer scale (left), more bright and dark lines in the image indicate the noisy nature of the data; at a coarser scale (right), fewer clear lines persist (indicating the noise is surpressed), but the lines that do persist widen (smoothing noise also smoothes data).</p>
+
+
+<h1><a name="references">References</a></h1>
+<ol>
+<li>Canny, J. 1986. A computational approach to edge detection. IEEE Trans. Pattern Anal. Mach. Intell. 8, 6 (Nov. 1986), 679-698.</li>
+</ol>
+
+</div> <!-- end content -->
+</div> <!-- end container -->
+</body>
+</html>

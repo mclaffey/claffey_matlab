@@ -1,0 +1,245 @@
+{\rtf1\ansi\ansicpg1252\cocoartf949\cocoasubrtf540
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;\red255\green0\blue0;}
+\margl1440\margr1440\vieww25020\viewh15120\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\fs46 \cf0 claffey_matlab Experiment Framework
+\fs28 \
+(Written by Mike Claffey, mclaffey[]ucsd.edu. Last updated December 14, 2010)\
+\
+This tutorial will explain the experiment framework and the steps to adapt it to your own experiment. Lines marked with \cf2 ACTION:\cf0  contain specific instructions for you to perform if you are creating your own experiment.\
+\
+
+\b \ul Experiment Design
+\b0 \ulnone \
+\
+Before you start coding the experiment, it is strongly recommended that you develop a specification document that explains not only the exact details of the experiment design, but also why you choose the values/conditions that you did. Documenting the rationale for your design choices can spare confusion in the future.\
+\
+Common specifications of an experiment include:\
+	what conditions are present\
+	how many trials there are, and how they are divided among blocks\
+	how the trials are randomized\
+	the timing of a trial\
+	are future trials adjusted based on performance or are all trials run independently\
+	what stimuli (visual/audio) are presented\
+	what responses are collected\
+	what feedback is provided (after all trials, certain types of trials, or end of blocks)\
+\
+\cf2 ACTION: Use the specs_template.rtf file to list your specifications.\
+\cf0 \
+
+\b \ul DEMO: Stop Signal Task
+\b0 \ulnone \
+\
+This tutorial will use a stop signal task as explained below. The framework comes written for this stop signal task. You can use existing code to understand the framework, then modifying it for your own experiment.\
+\
+In this example, we'll design a very simple stop signal task. Each trial will start with a fixation cross displayed for one second, which is followed by the go stimulus. At the go stimulus, participants are to respond with their right hand by pressing either the "<"  key with the index finger or the ">" with the middle finger. If the go stimulus is an arrow pointing to the left, the participant responds with the index finger. If the go stimulus is an arrow pointing to the right, participants respond with the middle finger of the right hand.\
+\
+On 25% of trials, a stop signal tone will play after a variable delay (stop signal delay, SSD).  There will be two SSD staircases per finger that change in 50 ms increments based on trial outcome.\
+\
+There will be 4 blocks of 64 trials.\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\b \cf0 \ul \ulc0 A Note on Directories
+\b0 \ulnone \
+\
+The demo is a choice stop signal task; the experiment directory is named  "stop_v1_choice".\
+\
+The experiment directory might contain:\
+   config - (optional) a directory for non-matlab files necessary for running the experiment, such as stimuli images and sound files\
+   data - a directory for subject data\
+   docs - (optional) a directory for documentation related to experiment specifications, coding, etc\
+   bin - a directory for all matlab files necessary for running the experiment\
+   experiment.m - a function which displays a menu for running all operations of the experiment\
+\
+\cf2 ACTION: Copy everything in the experimental framework directory to your experiment directory.\
+\cf0 \
+
+\b \ul A Note on Experiment Variables\
+\
+
+\b0 \ulnone The experiment framework revolves around two variables.\
+\
+TRIAL_DATA is a dataset that has one row per trial and as many columns as needed to capture all the data and events related to those trials. It is generated in advance of the subject beginning the experiment, read one line at a time during execution, and saved for later analysis.\
+\
+EDATA is a structure that contains any miscellaneous variables that are used by more than one function during the experiment. Data stores in EDATA includes screen information, audio information, input device numbers and file locations.\
+\
+Almost all the functions in the framework begin by being passed the EDATA and TRIAL_DATA variables. The functions use these variables as needed, possibly make modifications, and then return the variables. This completely eliminates a clutter of variables in the workspace and encourages parsimonious data organization.\
+\
+
+\b \ul Generating TRIAL_DATA & EDATA
+\b0 \ulnone \
+\
+I start by creating the code that will generate the trial data. This code belongs in the function exp_data_generate(). \
+\
+I recommend using the following process to generate TRIAL_DATA:\
+   1. Create a cell array which has rows for trials and columns describing the trials. This cell array should contain every unique combination of conditions (in this case, trial type x responding finger X staircase index). It should consist of a number of trials that can be multiplied by a whole number to reach the total number of trials needed.\
+  2. The cell array is converted to a dataset.\
+  3. The dataset is replicated to meet the required  number of trials.\
+  4. The trial order is randomized.\
+\
+A separate function, exp_data_format(), adds necessary but common columns and cleans up the dataset.\
+\
+In addition, any values that need to be in EDATA (such as number of trials or SSD values) are also saved in the exp_data_generate() function.\
+\
+ACTION: Modify exp_data_generate() and exp_data_format() to fit the needs of your experiment. Both of these files are generously commented to help you. Start with exp_data_generate first. You can run and debug this command by going into the /private directory and typing:\
+	[edata, trial_data] = exp_data_generate\
+\
+
+\b \ul The Experiment Menu
+\b0 \ulnone \
+\
+In the experiment directory is a function called experiment.m. This is the only function you call from the command line, as it presents menus for calling all the subfunctions in the /private directory.\
+\
+By examining the code in experiment.m, you can see what subfunctions are called for what actions. For example, selecting "Run" calls the exp_run() function. You can then examine exp_run() and its subfunctions to see how the experiment gets executed.\
+\
+In the text, any reference to "select the X command from the experiment menu" implies running the experiment.m file and subsequently selecting the X command.\
+\
+ACTION: Rename "experiment.m" to whatever command you want to call your experiment. In the first line of the file, replace experiment with the filename you picked (without ".m"). For the demo, this might be "stop1". It is nice to have names that are short, descriptive and unique from other matlab files.\
+\
+
+\b \ul Starting an Experiment: Initializing
+\b0 \ulnone \
+\
+The first step in running a subject (or testing an experiment in development) is to select the Initialize command from the experiment. This runs the following subfunctions:\
+  exp_initialize - prompts for subject id, saves files and runs other initialization subfunctions\
+  exp_initialize_audio - prepares the audio\
+  exp_initialize_display - attempts the PsychToolbox Screen command and gets display size\
+  exp_initialize_inputs - finds hardware devices and prompts for which input keys to use\
+\
+ACTION: Run the Initialize command from the experiment menu. If it results in any errors, this is probably due to the configuration of your matlab and needs to be addressed now. Likely problems are having out of date PsychToolbox or claffey_matlab installations. Once these work as provided in the original framework, modify any of the subfunctions to fit the requirements of your experiment.\
+\
+
+\b \ul Coding Visual Stimuli
+\b0 \ulnone \
+\
+A common theme in the framework is to use small functions for focused action. This includes functions that display individual visual stimuli.\
+\
+For the stop signal, I've created a new function that displays the go stimulus (a greater-than or less-than sign). I've named this function with the experiment prefix (stop1) so show that it is not part of the standard experiment framework. This function uses another subfunction, exp_display_centered_text(), which does exactly what it is named.\
+\
+ACTION: Create functions that do nothing but display whatever visual stimuli your experiment requires. For example, if your experiment has a cue (in words), a go stimulus and a stop stimulus, I recommend creating a function for each.\
+\
+
+\b \ul A Note on the various trial functions
+\b0 \ulnone \
+\
+Running the experiment is handled by the following main subfunctions:\
+\
+exp_run - Called when the user selects "Run" from the experiment menu. It starts and resumes an experiment. It prepares the screen, finds the current trial and then starts a loop. Each iteration of the loop executes one trial. While iterating through each trial, it grabs the relevant row from TRIAL_DATA and puts only that row in the variable TD. It then passes that variable to...\
+\
+exp_trial - Handles the execution of a single trial. First, if it detects the user holding down the ESCAPE key, it safely stops the experiment. Otherwise, it determines the timing of all events in the trial (show fixation, show cues, etc)  and performs miscellaneous tasks. The main work of the trial is handled by three subfunctions...\
+\
+exp_trial_get_response - Presents the stimuli of a trial and queries the user for responses. Saves this data to TD.\
+\
+exp_trial_check_response - Evaluates the responses for any conditions which may need immediate attention. For example, if the user responded incorrectly and the experiment provides feedback when this occurs, this is were the evaluation would occur. In a stop signal task, this code adjusts SSD based on response inhibition.\
+\
+exp_trial_feedback - Displays any trial-by-trial feedback, such as warnings about incorrect or late responses. For many trials, there may not be any feedback.\
+\
+If the experiment does not do anything differently from trial to trial, exp_trial_check_response() and exp_trial_feedback() are not necessary. However, it is sometimes useful to have these functions provide feedback when running in debug mode, to see if the program is recording responses as expected.\
+\
+
+\b \ul Specify Trial Timing
+\b0 \ulnone \
+\
+Timing of each trial is determined by a single structure called TIMING. Each field of the structure is an event, such as timing.trial_start_time, timing.show_cue or timing.limited_hold_end. The values of these fields are the time (in computer clock time, as returned by GetSecs) when these events will occur in the future.\
+\
+For each event in the trial, the framework prepares for the event and then waits until that event time arrives before executing.\
+\
+ACTION: Modify the event fields in the timing structure in the exp_trial() funciton (find the section called 'determine timing').\
+\
+
+\b \ul Getting trial responses
+\b0 \ulnone \
+\
+exp_trial_get_response() is the function that presents stimuli and queries the subject for responses. This is a heavily customized function; it contains all the action that the user experiences.\
+\
+Again, I've made liberal use of subfunctions, which makes exp_trial_get_response very easy to understand and modify. Notice I've made the function stop1_get_response, which has the keyboard querying loop and even plays the stop signal at the appropriate time. I code have put all its code right into exp_trial_get_response, but I prefer to have it separated out.\
+\
+ACTION: Modify exp_trial_get_response to fit your experiment requirements. This is where you'll be referencing the visual stimuli code you created earlier (e.g. stop1_display_go_stimuli).\
+\
+
+\b \ul Checking trial responses
+\b0 \ulnone \
+\
+exp_trial_check_responses is the function that looks at the user response data for the current trial and figures out what happened. For the stop signal task, it adjusts the SSD and labels the trial with a phrase describing the outcome (e.g. "go - correct", "stop - unsuccessful"). The outcome column will be used by the function that runs next, exp_trial_feedback().\
+\
+ACTION: If you require any adjustments from trial to trial, create the code to do so in exp_trial_check_response. If you do not require any adjustments, you can delete all the content in this function. (It's fine to call an empty function, and leaving the function call in place will keep the experiment consistent with the framework for future versions).\
+\
+
+\b \ul Showing trial feedback
+\b0 \ulnone \
+\
+exp_trial_feedback provides feedback to the subject or user after every trial. For example, in practice mode you may want to show the subject the trial outcome on every trial, so they can know how they are doing. In regular mode, you may want to warn them about only certain trial outcomes that need to be avoided.\
+\
+ACTION: Modify exp_trial_feedback to fit your experiment requirements.\
+\
+
+\b \ul Showing block feedback
+\b0 \ulnone \
+\
+The experiment framework includes functionality to display a matlab graph for the subject's performance at the end of each block. This requires a customized function that calculates the relevant block metrics and plots them as a matlab graph. The function exp_block_feedback takes care of displaying this graph in PsychToolbox Screen and waiting for a key press before advancing.\
+\
+The stop signal tasks includes the customized function stop1_block_stats(). This function calculates metrics for all the blocks, but creates a figure for whatever block is specified. It is called by a single line in exp_block_feedback. Nothing else in exp_block_feedback needs to be modified.\
+\
+ACTION: Create a function to calculate and plot block stats for your experiment, based on stop1_block_stats. Then find the relevant line in exp_block_feedback and modify it to call your function.\
+\
+
+\b \ul Enabling the Reset functionality\
+
+\b0 \ulnone \
+The framework comes with the ability to reset the experiment to different locations in the trial sequence. Resetting doesn't change the underlying trial_data, so a given subject will be performing the same trials in the same order.\
+\
+To reset, choose the "Reset" option from the experiment menu. A second menu appears which offers options to a) reset to the beginning, b) reset to the beginning of a particular block,  c) reset to a specific trial number or d) rewind a given number of trials.\
+\
+OPTIONAL ACTION: You can modify this code to work with your experiment's data.\
+\
+
+\b \ul Changing experiment settings\
+
+\b0 \ulnone \
+You can change various experiment settings, such as the input devices, screen and sound, by selecting the "Change Settings" option from the experiment menu. In most cases, this simply rerun's the corresponding exp_initialize_X() function.\
+\
+
+\b \ul Analyzing a subject
+\b0 \ulnone \
+\
+The framework makes it easy to quickly analyze a subject at the conclusion of the experiment (of even during the experiment, if necessary). It then produces an html summary.\
+\
+Two things are necessary to do this.\
+\
+First, you need to write the code that does the actual analysis. This goes into exp_analysis_subject(). This is another area where I recommend creating subfunctions to handle different analytic topics, and naming them according (e.g. stop1_analysis_go_rt). All analysis results should be saved back into the edata structure. You may also add new columns to the trial_data dataset as needed.\
+\
+The second step is to create code which displays the results of the analysis in a readable format. This goes into the script exp_analysis_subject_report(). Notice that this is the one file that is a script, for reasons explained in the next paragraph. I do not recommend performing any analysis in this script; contain all analysis to exp_analysis_subject. Instead, this script should be displaying text in the command window using fprintf and disp commands, or producing graphs.\
+\
+Once these two steps are done, there are two ways to view your analysis. Selecting "Analyze" from the experiment menu performs the analysis and displays it in the command window. Selecting "Report" from the experiment menu takes the current state of edata and produces a web page based on the output of exp_analysis_subject_report. Note that it does not update the analysis itself.\
+\
+ACTION: Modify exp_analysis_subject() to work with your particular trial_data and edata variables, and produce the analysis that is helpful for reviewing a given subject. Then modify exp_analysis_subject_report to display this in a meaningful way.\
+\
+
+\b \ul A Note on Subject Data File Locations
+\b0 \ulnone \
+\
+The framework typically stores the data for each subject in their own folder, since subjects will often end up with more than one file once analysis begins. This could lead to some complicated file management issues.\
+\
+However, this framework uses a method of specifying patterns for subject files (e.g. /data/subject_01/s01_behav.mat) that can be automatically generated for any subject number. (This uses a class in claffey_matlab called enum_file, short for enumerated file. Type 'help enum_file' for more info).\
+\
+These patterns are specified in the exp_files() function. The framework comes with patterns for the subject's behavioral file, an analysis file and an html file with analysis results.\
+\
+OPTIONAL ACTION: If you have different file requirements, modify the exp_file() function.\
+\
+
+\b \ul A Note on Subdividing Functions\
+
+\b0 \ulnone \
+A guiding principle in this framework is to take any piece of code that may have to be used repeatedly within an experiment and write it as a separate function. This is an esteemed principle of good programming in any language.\
+\
+For example, "stop1_initialize" calls both "exp_initialize_keys" and "exp_initialize_display". These two steps are coded as separate functions so that they can be developed and reused separately. It also makes understanding what's going on at each step of the program that much easier.\
+\
+\
+\
+\
+\
+\
+}
