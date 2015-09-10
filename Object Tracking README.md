@@ -3,7 +3,7 @@
 This will explain how to get started with the object tracking. I'll warn you
 that this was never packaged as an easy plug-and-play solution. It was
 something that I used and I've successfully shared with people that have
-asked, but it takes some work learn.
+asked, but it takes some work to learn.
 
 # This library
 
