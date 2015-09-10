@@ -14,7 +14,7 @@ haven't bothered to separate out.
 
 # ffmpeg
 
-This depends on an external program called ffmpeg to explore a video into
+This depends on an external program called ffmpeg to export a video into
 individual images to analyze. Installing and using ffmpeg is a process in it's
 own right that I won't go into, there's stuff on the web for that.
 
